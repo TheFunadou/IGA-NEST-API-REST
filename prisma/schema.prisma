@@ -1,0 +1,168 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Father models
+model UserLog {
+  id          Int      @id @default(autoincrement())
+  description String   @db.VarChar(60)
+  user_id     Int
+  date        DateTime @default(now())
+  User        User     @relation("UserLogs", fields: [user_id], references: [id])
+}
+
+model Category {
+  id                  Int                  @id @default(autoincrement())
+  name                String               @db.VarChar(60)
+  product             Product[]            @relation("ProductCategory")
+  category_attributes CategoryAttributes[] @relation("CatAttributes")
+}
+
+model CategoryAttributes {
+  id                 Int                  @id @default(autoincrement())
+  category_id        Int
+  description        String               @db.VarChar(35)
+  level              Int
+  father_id          Int?
+  category           Category             @relation("CatAttributes", fields: [category_id], references: [id])
+  parent             CategoryAttributes?  @relation("ParentChild", fields: [father_id], references: [id])
+  children           CategoryAttributes[] @relation("ParentChild")
+  product_attributes ProductAttributes[]  @relation("PaCategoryAttributes")
+}
+
+model ProductSources {
+  id                 Int     @id @default(autoincrement())
+  product_id         Int
+  source_description String  @db.VarChar(35)
+  source_url         String
+  product            Product @relation("ProductSources", fields: [product_id], references: [id])
+}
+
+model ProductAttributes {
+  product_id            Int
+  category_attribute_id Int
+  product               Product            @relation("PaProduct", fields: [product_id], references: [id])
+  category_attribute    CategoryAttributes @relation("PaCategoryAttributes", fields: [category_attribute_id], references: [id])
+
+  @@id([product_id, category_attribute_id])
+}
+
+model Product {
+  id                  Int                 @id @default(autoincrement())
+  product_name        String              @db.VarChar(50)
+  category_id         Int
+  specs               String              @db.VarChar(140)
+  recomendations      String              @db.VarChar(140)
+  applications        String              @db.VarChar(140)
+  certifications_desc String              @db.VarChar(140)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+  user_id             Int
+  category            Category            @relation("ProductCategory", fields: [category_id], references: [id])
+  user                User                @relation("CreatedBy", fields: [user_id], references: [id])
+  product_sources     ProductSources[]    @relation("ProductSources")
+  product_attributes  ProductAttributes[] @relation("PaProduct")
+  product_version     ProductVersion[]    @relation("FatherProduct")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(30)
+  name         String    @db.VarChar(40)
+  last_name    String    @db.VarChar(60)
+  email        String    @db.VarChar(60)
+  created_at   DateTime  @default(now())
+  update_at    DateTime  @updatedAt
+  is_superuser Boolean   @default(false)
+  password     String
+  user_log     UserLog[] @relation("UserLogs")
+  product      Product[] @relation("CreatedBy")
+}
+
+model ProductImage {
+  id                 Int            @id @default(autoincrement())
+  product_version_id Int
+  image_url          String
+  main_image         Boolean        @default(false)
+  product_version    ProductVersion @relation("ProductVerImgs", fields: [product_version_id], references: [id])
+}
+
+model ProductVersion {
+  id                 Int                 @id @default(autoincrement())
+  product_id         Int
+  sku                Int                 @unique
+  code_bar           Int?                @unique
+  // Experimental only for postgres
+  attributes         String[]
+  color_line         String              @default("N/A") @db.VarChar(45)
+  color_name         String              @db.VarChar(45)
+  color_code         String              @db.VarChar(10)
+  status             String              @db.VarChar(35)
+  stock              Int
+  unit_price         Decimal             @db.Decimal(10, 2)
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  main_version       Boolean
+  product            Product             @relation("FatherProduct", fields: [product_id], references: [id])
+  product_images     ProductImage[]      @relation("ProductVerImgs")
+  customer_favorites CustomerFavorites[] @relation("ProductVerFavorite")
+}
+
+model Customers {
+  id             Int    @id @default(autoincrement())
+  name           String @db.VarChar(40)
+  last_name      String @db.VarChar(60)
+  email          String @unique @db.VarChar(60)
+  contact_number String @unique @db.VarChar(15)
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  password           String?
+  is_guest           Boolean
+  last_session       DateTime?
+  customer_favorites CustomerFavorites[] @relation("CustomerFavorites")
+  customer_addresses CustomerAddresses[] @relation("CustomerAddresses")
+}
+
+model CustomerFavorites {
+  customer_id Int
+  product_version_id  Int
+  agg_date    DateTime       @default(now())
+  customer    Customers      @relation("CustomerFavorites", fields: [customer_id], references: [id])
+  product_version     ProductVersion @relation("ProductVerFavorite", fields: [product_version_id], references: [id])
+
+  @@id([customer_id, product_version_id])
+}
+
+model CustomerAddresses {
+  id                     Int       @id @default(autoincrement())
+  customer_id            Int
+  recipient_name         String    @db.VarChar(40)
+  recipient_last_name    String    @db.VarChar(60)
+  country                String    @db.VarChar(40)
+  state                  String    @db.VarChar(40)
+  city                   String    @db.VarChar(50)
+  locality               String    @db.VarChar(50)
+  street_name            String    @db.VarChar(60)
+  neighborhood           String    @db.VarChar(60)
+  zip_code               String    @db.VarChar(10)
+  address_type           String    @db.VarChar(30)
+  floor                  String?   @db.VarChar(3)
+  number                 String    @db.VarChar(10)
+  aditional_number       String?   @db.VarChar(10)
+  references_or_comments String?   @db.VarChar(80)
+  contact_number         String    @db.VarChar(15)
+  default_address        Boolean
+  customer               Customers @relation("CustomerAddresses", fields: [customer_id], references: [id])
+}
