@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { GetProductImagesDto } from "./product-resources.dto";
+import { Transform, Type } from "class-transformer";
+import { GetProductImagesDto, ProductImagesSmallDto } from "./product-resources.dto";
 import { IsArray, IsBoolean, IsDate, IsDecimal, IsEmpty, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { Decimal } from "generated/prisma/runtime/library";
 import { ProductDto } from "./product.dto";
@@ -106,16 +106,36 @@ export class ProductVersionDto {
     @IsArray()
     attributes: string[];
 
+    @ApiProperty({ description: "Linea de color", type: String, default: [] })
+    @IsArray()
+    color_line: string;
+
+    @ApiProperty({ description: "Nombre de color", type: String, default: [] })
+    @IsArray()
+    color_name: string;
+
+    @ApiProperty({ description: "Codigo de color", type: String, default: [] })
+    @IsArray()
+    color_code: string;
+
+    @ApiProperty({ description: "Estatus del producto", type: String, default: [] })
+    @IsArray()
+    status: string;
+
+    @ApiProperty({ description: "Stock del producto", type: Number, default: [] })
+    @IsArray()
+    stock: number;
+
     @ApiProperty({ description: "Precio unitario del producto" })
     unit_price: Decimal;
 
-    @ApiProperty({ description: "Imágenes del producto", type: [GetProductImagesDto], default: [] })
+    @ApiProperty({ description: "Imágenes del producto", type: () => [GetProductImagesDto], default: [] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => GetProductImagesDto)
     product_images: GetProductImagesDto[];
 
-    @ApiProperty({ description: "Informacion del padre", type: ProductDto })
+    @ApiProperty({ description: "Informacion del padre", type: () => ProductDto })
     @Type(() => ProductDto)
     product: ProductDto
 }
@@ -174,7 +194,26 @@ export class GetProductPerSubcategoryDto {
     @Type(() => Number)
     @IsInt({ each: true })
     @IsNotEmpty({ each: true, message: "The path field cannot be empty" })
+    @Transform(({value}) => {
+        if(Array.isArray(value)){
+            return value.map(Number);
+        }
+
+        return [Number(value)];
+    })
     path: number[];
+
+    @ApiProperty({ example: 0})
+    @IsInt()
+    @Type(() => Number)
+    @IsNotEmpty({ each: true, message: "The offset field cannot be empty" })
+    offset: number;
+
+    @ApiProperty({ example: 10})
+    @IsInt()
+    @Type(() => Number)
+    @IsNotEmpty({ each: true, message: "The offset field cannot be empty" })
+    limit: number;
 }
 
 export class GetProductNameDto {
@@ -237,4 +276,20 @@ export class ProductVerCardPlainDto {
 
     @ApiProperty({ description: "Url de la imagen principal" })
     main_image_url: String | null;
+}
+
+export class ProductVerSmallCards {
+    @ApiProperty({description: "SKU del producto",type: Number})
+    @IsNumber()
+    sku: number;
+
+    @ApiProperty({description: "Precio unitario del producto",type:Decimal})
+    @IsDecimal()
+    unit_price:Decimal;
+
+    @ApiProperty({description: "Precio unitario del producto",type: () => [ProductImagesSmallDto]})
+    @Type(()=>ProductImagesSmallDto) 
+    product_images: ProductImagesSmallDto[];
+
+
 }

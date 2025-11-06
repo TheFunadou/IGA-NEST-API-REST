@@ -76,11 +76,23 @@ export class ProductController {
     @ApiOperation({ summary: "Recuperar todas las tarjetas de producto por una ruta de subcategorias" })
     @ApiQuery({ name: 'category_id', required: true, type: Number, description: "ID de categoria de productos" })
     @ApiQuery({ name: 'path', required: true, type: Number, isArray: true, description: "Array de ID de subcategorias (relacionadas entre si)" })
+    @ApiQuery({ name: 'offset', required: true, type: Number, description: "Tomar productos desde" })
+    @ApiQuery({ name: 'limit', required: true, type: Number, description: "Limite de productos devueltos" })
     @ApiResponse({ status: 200, description: "Información recuperada.", type: ProductVerCardPlainDto, isArray: true })
     @ApiResponse({ status: 400, description: "Algo fallo al intentar recuperar la información." })
     @ApiResponse({ status: 500, description: "Error al recuperar la información." })
-    async getAllProductPerSubcategoryPath(@Query() query: GetProductPerSubcategoryDto): Promise<ProductVerCardPlainDto[]> {
-        return this.productService.getProductCardsPerSubcategory(query);
+    async getAllProductPerSubcategoryPath(@Query() query: GetProductPerSubcategoryDto):Promise<ProductVerCardPlainDto[]> {
+        return this.productService.getCardsPerSubcategory(query);
+    }
+
+    @Get("get-ramdom/")
+    @ApiOperation({ summary: "Recuperar todas las tarjetas de productos aletatoriamente" })
+    @ApiQuery({ name: 'limit', required: true, type: Number, description: "Limite de registros" })
+    @ApiResponse({ status: 200, description: "Información recuperada.", type: ProductVerCardPlainDto, isArray: true })
+    @ApiResponse({ status: 400, description: "Algo fallo al intentar recuperar la información." })
+    @ApiResponse({ status: 500, description: "Error al recuperar la información." })
+    async getCardsRamdom(@Query("limit",ParseIntPipe) limit:number): Promise<ProductVerCardPlainDto[] | null> {
+        return this.productService.getCardsRamdom(limit);
     }
 
     @Get("get-detail/:sku")

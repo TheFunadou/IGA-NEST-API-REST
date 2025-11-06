@@ -121,11 +121,11 @@ model ProductVersion {
 }
 
 model Customers {
-  id             Int    @id @default(autoincrement())
-  name           String @db.VarChar(40)
-  last_name      String @db.VarChar(60)
-  email          String @unique @db.VarChar(60)
-  contact_number String @unique @db.VarChar(15)
+  id                 Int                 @id @default(autoincrement())
+  name               String              @db.VarChar(40)
+  last_name          String              @db.VarChar(60)
+  email              String              @unique @db.VarChar(60)
+  contact_number     String              @unique @db.VarChar(15)
   created_at         DateTime            @default(now())
   updated_at         DateTime            @updatedAt
   password           String?
@@ -136,11 +136,11 @@ model Customers {
 }
 
 model CustomerFavorites {
-  customer_id Int
-  product_version_id  Int
-  agg_date    DateTime       @default(now())
-  customer    Customers      @relation("CustomerFavorites", fields: [customer_id], references: [id])
-  product_version     ProductVersion @relation("ProductVerFavorite", fields: [product_version_id], references: [id])
+  customer_id        Int
+  product_version_id Int
+  agg_date           DateTime       @default(now())
+  customer           Customers      @relation("CustomerFavorites", fields: [customer_id], references: [id])
+  product_version    ProductVersion @relation("ProductVerFavorite", fields: [product_version_id], references: [id])
 
   @@id([customer_id, product_version_id])
 }
@@ -158,10 +158,10 @@ model CustomerAddresses {
   neighborhood           String    @db.VarChar(60)
   zip_code               String    @db.VarChar(10)
   address_type           String    @db.VarChar(30)
-  floor                  String?   @db.VarChar(3)
+  floor                  String?   @default("N/A") @db.VarChar(3)
   number                 String    @db.VarChar(10)
-  aditional_number       String?   @db.VarChar(10)
-  references_or_comments String?   @db.VarChar(80)
+  aditional_number       String?   @default("N/A") @db.VarChar(10)
+  references_or_comments String?   @default("N/A") @db.VarChar(80)
   contact_number         String    @db.VarChar(15)
   default_address        Boolean
   customer               Customers @relation("CustomerAddresses", fields: [customer_id], references: [id])

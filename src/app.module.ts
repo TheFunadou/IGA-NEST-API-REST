@@ -12,9 +12,18 @@ import { CategoriesModule } from './categories/categories.module';
 import { CustomerModule } from './customer/customer.module';
 import { AuthModule } from './auth/auth.module';
 
+// Redis
 @Module({
-  imports: [UserModule,PrismaModule, ProductModule, CategoriesModule, CustomerModule, AuthModule],
-  controllers: [AppController, UserController, CategoriesController, ],
+  imports: [
+    UserModule,
+    PrismaModule,
+    ProductModule,
+    CategoriesModule,
+    CustomerModule,
+    AuthModule,
+    
+  ],
+  controllers: [AppController, UserController, CategoriesController,],
   providers: [AppService, UserService, CategoriesService],
 })
-export class AppModule {}
+export class AppModule { }

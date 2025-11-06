@@ -3,6 +3,7 @@ import { Type } from "class-transformer";
 import { ArrayNotEmpty, IsArray, IsInt, IsNotEmpty, ValidateNested } from "class-validator";
 import { GetProductSourcesDto } from "./product-resources.dto";
 import { GetMainCategoryDto } from "src/categories/DTO/categories.dto";
+import { ProductVerSmallCards } from "./product-version.dto";
 
 export class CreateNewProductDto {
     @ApiProperty({ example: "IGA casco de seguridad dielectrico" })
@@ -95,7 +96,7 @@ export class ProductDto {
     category: GetMainCategoryDto;
 
     @ApiProperty({
-        type: [GetProductSourcesDto],
+        type:() => [GetProductSourcesDto],
         description: "Recursos del producto (fichas técnicas, certificaciones)",
         default: [],
     })
@@ -103,4 +104,14 @@ export class ProductDto {
     @ValidateNested({ each: true })
     @Type(() => GetProductSourcesDto)
     product_sources: GetProductSourcesDto[];
+
+    @ApiProperty({ 
+        type: () => [ProductVerSmallCards],
+        description: "Tarjetas de versiones del producto",
+        default: [],
+    })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ProductVerSmallCards)
+    product_version:ProductVerSmallCards[];
 }

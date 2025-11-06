@@ -7,6 +7,7 @@ import { CreateNewProductDto, ProductCreatedDto } from './DTO/product.dto';
 import { AddProductImagesDto, AddProductSourcesDto } from './DTO/product-resources.dto';
 import { SourceCreatedDto } from './DTO/source-created.dto';
 import { AddProductToFavoritesDto, AddProductVersionDto, GetProductPerSubcategoryDto, ProductAddedToFavDto, ProductVerCardDto, ProductVerCardPlainDto, ProductVersionCreatedDto, ProductVersionDto } from './DTO/product-version.dto';
+import { PaginationDto } from 'src/user/DTO/pagination.dto';
 
 
 
@@ -139,24 +140,21 @@ export class ProductService {
         });
     }
 
-    async getProductCardsPerSubcategory(dto: GetProductPerSubcategoryDto): Promise<ProductVerCardPlainDto[]> {
-        if (!Array.isArray(dto.path)) {
-            // Is not array 
-            const path: number[] = [dto.path];
-            return await this.prisma.$queryRaw<ProductVerCardPlainDto[]>`
-            -- View ../postgres/IGA-API-REST-POSTGRES-FUNCTIONS-SCIRPT.sql
-            SELECT * FROM get_product_versions_by_path(
-                ${dto.category_id}::INT,
-                ${path}::INT[]
-            )
-            `;
-        }
-
+    async getCardsRamdom(limit: number): Promise<ProductVerCardPlainDto[] | null> {
         return await this.prisma.$queryRaw<ProductVerCardPlainDto[]>`
-        -- View ../postgres/IGA-API-REST-POSTGRES-FUNCTIONS-SCIRPT.sql
+        SELECT * FROM get_random_product_versions(
+            ${limit}::INT
+        )
+        `;
+    }
+
+    async getCardsPerSubcategory(dto: GetProductPerSubcategoryDto):Promise<ProductVerCardPlainDto[]> {
+        return await this.prisma.$queryRaw<ProductVerCardPlainDto[]>`
         SELECT * FROM get_product_versions_by_path(
             ${dto.category_id}::INT,
-            ${dto.path}::INT[]
+            ${dto.path}::INT[],
+            ${dto.offset}::INT,
+            ${dto.limit}::INT
         )
         `;
     }
@@ -168,10 +166,16 @@ export class ProductService {
                 product_id: true,
                 sku: true,
                 attributes: true,
+                color_line: true,
+                color_name: true,
+                color_code: true,
+                status:true,
+                stock:true,
                 unit_price: true,
                 product_images: {
                     where: { main_image: true },
                     select: {
+                        id:true,
                         image_url: true,
                         main_image: true
                     }
@@ -190,6 +194,20 @@ export class ProductService {
                             select: {
                                 source_description: true,
                                 source_url: true
+                            }
+                        },
+                        product_version:{
+                            select: {
+                                sku:true,
+                                unit_price:true,
+                                product_images:{
+                                    where:{
+                                        main_image: true,
+                                    },
+                                    select:{
+                                        image_url:true,    
+                                    }
+                                }
                             }
                         }
                     }
@@ -214,6 +232,7 @@ export class ProductService {
                 product_images: {
                     where: { main_image: true },
                     select: {
+                        id:true,
                         image_url: true,
                         main_image: true
                     }

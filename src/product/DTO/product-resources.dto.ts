@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber } from "class-validator";
 
 
 export class AddProductSourcesDto {
@@ -45,10 +45,19 @@ export class AddProductImagesDto {
 }
 
 export class GetProductImagesDto {
+
+  @ApiProperty({ description: "URL de la imagen del producto" })
+  id: number;
+
   @ApiProperty({ description: "URL de la imagen del producto" })
   image_url: string;
 
   @ApiProperty({ description: "¿Es la imagen principal?" })
   main_image: boolean;
+}
+
+export class ProductImagesSmallDto{
+  @ApiProperty({ description: "URL de la imagen del producto" })
+  image_url: string;
 }
 
